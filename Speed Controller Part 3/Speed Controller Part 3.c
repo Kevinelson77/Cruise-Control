@@ -57,58 +57,58 @@ int main (void) {
 
 // Port Initializations for LCD. PA9-R/S, PA10-R/W, PA11-EN, PB0-PB7 for D0-D7, respectively.
 void Port_init(void) {
-		// Enable Clocks
-		RCC->AHB1ENR = 3;	            	// enable GPIOA/B clocks
-		RCC->APB1ENR |= 0x200000003;    // enable TIM2 clock & DAC
-		RCC->APB2ENR |= 0x00004101;     // enable TIM 1, ADC1, & SYSCFG clock
+// Enable Clocks
+RCC->AHB1ENR = 3;	        // enable GPIOA/B clocks
+RCC->APB1ENR |= 0x200000003;    // enable TIM2 clock & DAC
+RCC->APB2ENR |= 0x00004101;     // enable TIM 1, ADC1, & SYSCFG clock
 
-		// Enable Modes
-		GPIOA->MODER = 0;    						// clear pin mode
-		GPIOA->MODER = 0x55566B5C;    	// set pins output mode, PA1 to analog(capture pot value), PA5(output PWM) to alternate function, PA8(input capture) alternate function
-    GPIOA->BSRR  = 0x0C000000;      // turn off EN and R/W
-		GPIOA->PUPDR  = 0x1;
-		GPIOA->AFR[0] = 0;   						// clear alt mode
-    GPIOA->AFR[0] = 0x02100000;    	// set pin to AF1 for TIM2 CH1, configure PA6 as input of TIM3 CH1
-		GPIOA->AFR[1] = 0;   						// clear alt mode
-    GPIOA->AFR[1] = 0x00000001;   	// set alt mode TIM1_CH1
-	  GPIOB->MODER = 0;    						// clear pin mode
-    GPIOB->MODER = 0x55555555;    	// set pins output mode
+// Enable Modes
+GPIOA->MODER = 0;    		// clear pin mode
+GPIOA->MODER = 0x55566B5C;    	// set pins output mode, PA1 to analog(capture pot value), PA5(output PWM) to alternate function, PA8(input capture) alternate function
+GPIOA->BSRR  = 0x0C000000;      // turn off EN and R/W
+GPIOA->PUPDR  = 0x1;
+GPIOA->AFR[0] = 0;   		// clear alt mode
+GPIOA->AFR[0] = 0x02100000;    	// set pin to AF1 for TIM2 CH1, configure PA6 as input of TIM3 CH1
+GPIOA->AFR[1] = 0;   		// clear alt mode
+GPIOA->AFR[1] = 0x00000001;   	// set alt mode TIM1_CH1
+GPIOB->MODER = 0;    		// clear pin mode
+GPIOB->MODER = 0x55555555;    	// set pins output mode
 	
-		// Setup ADC1
-    ADC1->CR2 = 0;                  // SW trigger
-    ADC1->SQR3 = 1;                 // conversion sequence starts at ch 1
-    ADC1->SQR1 = 0;                 // conversion sequence length 1
-    ADC1->CR2 |= 1;                 // enable ADC1
+// Setup ADC1
+ADC1->CR2 = 0;                  // SW trigger
+ADC1->SQR3 = 1;                 // conversion sequence starts at ch 1
+ADC1->SQR1 = 0;                 // conversion sequence length 1
+ADC1->CR2 |= 1;                 // enable ADC1
 	
-		// Setup TIM1 for input capture - PA8
-		TIM1->PSC = 16000;          		// divided by 16000
-    TIM1->CCMR1 = 0x01;           	// Input capture mode, validates transition on TI1 with 1 consecutive sample, input prescaler disabled(IC1PS bits to 0)
-    TIM1->CCER = 1;                 // CC1S bits are writable only when the channel is OFF(CC1E = '0' in TIMx_CCER), rising edge selected by keeping CC1P & CC1NP bits to 0
-    TIM1->CR1 = 1;                  // enable timer
+// Setup TIM1 for input capture - PA8
+TIM1->PSC = 16000;          	// divided by 16000
+TIM1->CCMR1 = 0x01;           	// Input capture mode, validates transition on TI1 with 1 consecutive sample, input prescaler disabled(IC1PS bits to 0)
+TIM1->CCER = 1;                 // CC1S bits are writable only when the channel is OFF(CC1E = '0' in TIMx_CCER), rising edge selected by keeping CC1P & CC1NP bits to 0
+TIM1->CR1 = 1;                  // enable timer
 		
-		// Setup TIM2 for output PWM - PA5
-    TIM2->PSC = 1000;          			// divided by 1000
-    TIM2->ARR = 750;           			// counts up to 750
-		TIM2->CNT = 0;                  // clear counter
-		TIM2->CCMR1 = 0x0068;           // set output to PWM
-   	TIM2->CCR1 = 0;               	// set match value
-  	TIM2->CCER = 1;                	// enable ch 1 compare mode 
- 		TIM2->CR1 = 1;                  // enable TIM2
+// Setup TIM2 for output PWM - PA5
+TIM2->PSC = 1000;          	// divided by 1000
+TIM2->ARR = 750;           	// counts up to 750
+TIM2->CNT = 0;                  // clear counter
+TIM2->CCMR1 = 0x0068;           // set output to PWM
+TIM2->CCR1 = 0;               	// set match value
+TIM2->CCER = 1;                	// enable ch 1 compare mode 
+TIM2->CR1 = 1;                  // enable TIM2
 		
-		// Setup TIM3 for system clock
-    TIM3->PSC = 16000;          		// divided by 16000
-		TIM2->CNT = 0;                  // clear counter
-		TIM3->ARR = 0xFFFFFFFF;					// Max value
- 		TIM3->CR1 = 1;                  // enable TIM3
+// Setup TIM3 for system clock
+TIM3->PSC = 16000;          	// divided by 16000
+TIM2->CNT = 0;                  // clear counter
+TIM3->ARR = 0xFFFFFFFF;		// Max value
+ TIM3->CR1 = 1;                 // enable TIM3
 		
-		// Setup Interrupts
-		__disable_irq();               				// global disable IRQs
-		SYSCFG->EXTICR[0] = 0;        				// select port A for EXTI0
-		EXTI->IMR  = 1;                				// unmask EXTI0
-		EXTI->FTSR = 1;               				// select falling edge trigger
-		NVIC_SetPriority(EXTI0_IRQn, 1);			// set priority interrupt for push button PA0
-		NVIC_EnableIRQ(EXTI0_IRQn);     			// enable interrupt in NVIC
-		__enable_irq();                     	// global enable IRQs
+// Setup Interrupts
+__disable_irq();               				// global disable IRQs
+SYSCFG->EXTICR[0] = 0;        				// select port A for EXTI0
+EXTI->IMR  = 1;                				// unmask EXTI0
+EXTI->FTSR = 1;               				// select falling edge trigger
+NVIC_SetPriority(EXTI0_IRQn, 1);			// set priority interrupt for push button PA0
+NVIC_EnableIRQ(EXTI0_IRQn);     			// enable interrupt in NVIC
+__enable_irq();                     			// global enable IRQs
 }
 
 // Initialize port pins then initialize LCD controller
@@ -149,16 +149,16 @@ void LCD_data(char datawrite) {
 
 // Start & Grab ADC conversion Data
 void Grab_Conversion_Data(void){
-		ADC1->CR2 |= 0x40000000;        															// start a conversion
-		while(!(ADC1->SR & 2)) {}       															// wait for conv complete
-		result = ADC1->DR;              															// read conversion result	
+		ADC1->CR2 |= 0x40000000;        // start a conversion
+		while(!(ADC1->SR & 2)) {}       // wait for conv complete
+		result = ADC1->DR;              // read conversion result	
 }
 
 // Display Voltage Function
 void Voltage_Display(void){
-		voltage = result *(3.3f/4095.0f);  														// convert ADC output to voltage
+		voltage = result *(3.3f/4095.0f);  			// convert ADC output to voltage
 		sprintf(Voltage_Buffer, "Voltage: %.2f V", voltage);
-		Send_A_String(Voltage_Buffer);																// Display Voltage
+		Send_A_String(Voltage_Buffer);				// Display Voltage
 }
 
 // Pulse Width Modulation
@@ -174,17 +174,17 @@ void Pulse_Width_Modulator(float pulse_width){
 
 // Display RPM Function
 void RPM_Display(void){
-		if (!(TIM1->SR & 2)) {}  								// wait until input edge is captured
+		if (!(TIM1->SR & 2)) {}  			// wait until input edge is captured
 		else{	
-			Current = TIM1->CCR1;									// Read CCR1 input capture into Current
-			Period = Current - Last;    					// calculate the period
+			Current = TIM1->CCR1;			// Read CCR1 input capture into Current
+			Period = Current - Last;    		// calculate the period
 			Last = Current;
 			Frequency = 1000.0f / Period;
 			RPM = Frequency * 60.0f; }
 		
 		// Display Data
 		sprintf(RPM_Buffer, "RPM: %.1f", RPM);
-		Send_A_String(RPM_Buffer);							// Display RPM
+		Send_A_String(RPM_Buffer);			// Display RPM
 }
 
 // Cruise Control Setup
@@ -195,25 +195,25 @@ void CruiseControlSetup(void){
 
 // Manual Mode
 void ManualMode(void){
-	Grab_Conversion_Data();						// Starts ADC & DAC, then reads data holding register	
-	Voltage_Display();								// Displays voltage result to LCD from DAC
-	LCD_command(0xC0);								// Moves LCD cursor to 2nd line	
+	Grab_Conversion_Data();			// Starts ADC & DAC, then reads data holding register	
+	Voltage_Display();			// Displays voltage result to LCD from DAC
+	LCD_command(0xC0);			// Moves LCD cursor to 2nd line	
 	Pulse_Width_Modulator(result); 		// Output PWM value to motor
-	RPM_Display();										// Displays RPM result to LCD from TIM1
-	LCD_command(0x02);								// Clear LCD & move cursor back to line 1
+	RPM_Display();				// Displays RPM result to LCD from TIM1
+	LCD_command(0x02);			// Clear LCD & move cursor back to line 1
 }
 
 // Cruise Control
 void CruiseControlFunc(void){
 	if(j == 1){
-		Grab_Conversion_Data(); }					// Starts ADC & DAC, then reads data holding register
+		Grab_Conversion_Data(); }	// Starts ADC & DAC, then reads data holding register
 	j=0;
-	Voltage_Display();									// Displays voltage result to LCD from DAC
-	LCD_command(0xC0);									// Moves LCD cursor to 2nd line	
+	Voltage_Display();			// Displays voltage result to LCD from DAC
+	LCD_command(0xC0);			// Moves LCD cursor to 2nd line	
 	//Compute();
 	Pulse_Width_Modulator(result); 		// Output PWM value to motor
-	RPM_Display();											// Displays RPM result to LCD from TIM1
-	LCD_command(0x02);									// Clear LCD & move cursor back to line 1
+	RPM_Display();				// Displays RPM result to LCD from TIM1
+	LCD_command(0x02);			// Clear LCD & move cursor back to line 1
 	if(CCButtonIsPressed){
 		CruiseControl = 0;
 		j=1;
